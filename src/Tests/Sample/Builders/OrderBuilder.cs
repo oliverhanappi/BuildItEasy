@@ -10,9 +10,9 @@ namespace BuildItEasy.Tests.Sample.Builders
         private static readonly Identity<string> OrderNumberIdentity
             = new Identity<string>(i => $"{DateTime.Today:yyyy}/{i:000000}");
 
-        private readonly Property<string> _orderNumber = RequiredProperty<string>(OrderNumberIdentity);
+        private readonly Property<string> _orderNumber;
         private readonly ChildBuilder<Contact, ContactBuilder> _contact = Child<Contact, ContactBuilder>(o => new ContactBuilder(o));
-        private readonly Property<string> _paymentTransactionId = OptionalProperty<string>("1234");
+        private readonly Property<string> _paymentTransactionId;
 
 //        private readonly Property<IReadOnlyList<Action<Order>>> _orderLines
 //            = new Property<IReadOnlyList<Action<Order>>>(new Action<Order>[] {o => new OrderLineBuilder(o).Build()});
@@ -20,6 +20,12 @@ namespace BuildItEasy.Tests.Sample.Builders
 
         private readonly StateHelper<Order, OrderState, OrderBuilder> _state = State<OrderState, OrderStateDefinition>();
 
+        public OrderBuilder()
+        {
+            _orderNumber = Property(o => o.OrderNumber, OrderNumberIdentity).Required();
+            _paymentTransactionId = Property(o => o.PaymentTransactionId, "1234").OnlyIfNecessary();
+        }
+        
         // Data
         
         public OrderBuilder WithOrderNumber(string orderNumber) => SetValue(_orderNumber, orderNumber);
@@ -130,7 +136,7 @@ namespace BuildItEasy.Tests.Sample.Builders
             return this;
         }
 
-        public override Order Build()
+        protected override Order BuildInternal()
         {
             var order = new Order(_orderNumber);
 

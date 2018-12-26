@@ -1,4 +1,8 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
+using BuildItEasy.Reflection;
 using BuildItEasy.States;
 using LanguageExt;
 
@@ -6,25 +10,37 @@ namespace BuildItEasy
 {
     public abstract class Builder<TResult>
     {
-        protected static Property<TProperty> Property<TProperty>(ValueProvider<TProperty> defaultValueProvider)
-        {
-            return new Property<TProperty>(defaultValueProvider, DefaultValuePreference.Value);
-        }
+        private readonly ICollection<IValidator<TResult>> _validators;
 
-        protected static Property<TProperty> RequiredProperty<TProperty>(ValueProvider<TProperty> defaultValueProvider)
+        protected Builder()
         {
-            var property = new Property<TProperty>(defaultValueProvider, DefaultValuePreference.Value);
-            property.EnsureValue();
-
-            return property;
-        }
-
-        protected static Property<TProperty> OptionalProperty<TProperty>(ValueProvider<TProperty> defaultValueProvider)
-        {
-            return new Property<TProperty>(defaultValueProvider, DefaultValuePreference.NoValue);
+            _validators = new List<IValidator<TResult>>();
         }
         
-        public abstract TResult Build();
+        protected PropertyConfigurator<TResult, TProperty> Property<TProperty>(Expression<Func<TResult, TProperty>> expression, ValueProvider<TProperty> defaultValueProvider)
+        {
+            var memberName = ExpressionUtils.GetMemberName(expression);
+            var valueGetter = expression.Compile();
+            var propertyConfigurator = new PropertyConfigurator<TResult, TProperty>(memberName, defaultValueProvider, valueGetter);
+            
+            _validators.Add(propertyConfigurator);
+            return propertyConfigurator;
+        }
+
+        public TResult Build()
+        {
+            var result = BuildInternal();
+
+            var validationResult = _validators
+                .Select(v => v.Validate(result))
+                .Aggregate(ValidationResult.Valid, (x, y) => new ValidationResult(x.Errors.Concat(y.Errors)));
+            
+            validationResult.AssertValid();
+            
+            return result;
+        }
+        
+        protected abstract TResult BuildInternal();
     }
     
     public abstract class Builder<TResult, TSelf> : Builder<TResult>
