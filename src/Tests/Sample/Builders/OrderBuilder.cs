@@ -13,6 +13,7 @@ namespace BuildItEasy.Tests.Sample.Builders
         private readonly Property<string> _orderNumber;
         private readonly ChildBuilder<Contact, ContactBuilder> _contact = Child<Contact, ContactBuilder>(o => new ContactBuilder(o));
         private readonly Property<string> _paymentTransactionId;
+        private readonly Property<OrderCancellationReason> _cancellationReason;
 
 //        private readonly Property<IReadOnlyList<Action<Order>>> _orderLines
 //            = new Property<IReadOnlyList<Action<Order>>>(new Action<Order>[] {o => new OrderLineBuilder(o).Build()});
@@ -24,6 +25,7 @@ namespace BuildItEasy.Tests.Sample.Builders
         {
             _orderNumber = Property(o => o.OrderNumber, OrderNumberIdentity).Required();
             _paymentTransactionId = Property(o => o.PaymentTransactionId, "1234").OnlyIfNecessary();
+            _cancellationReason = Property<OrderCancellationReason>("CancellationReason", OrderCancellationReason.Other).OnlyIfNecessary();
         }
         
         // Data
@@ -119,6 +121,9 @@ namespace BuildItEasy.Tests.Sample.Builders
         
         // Cancellation
 
+        public OrderBuilder WithCancellationReason(OrderCancellationReason cancellationReason) =>
+            SetValue(_cancellationReason, cancellationReason);
+        
         private OrderBuilder PrepareForCancellation() => this;
         
         public OrderBuilder SuitableForCancellation() => PrepareForCancellation();
@@ -127,6 +132,7 @@ namespace BuildItEasy.Tests.Sample.Builders
         {
             PrepareForCancellation();
             _state.RequireAtLeast(OrderState.Canceled);
+            _cancellationReason.EnsureValue();
             return this;
         }
 
@@ -162,10 +168,12 @@ namespace BuildItEasy.Tests.Sample.Builders
                 Transition(OrderState.PaymentPending, OrderState.ShipmentPending, (o, b) => o.ConfirmPayment(b._paymentTransactionId));
                 Transition(OrderState.ShipmentPending, OrderState.Shipped, o => o.Ship());
 
-                Transition(OrderState.Open, OrderState.Canceled, o => o.Cancel());
-                Transition(OrderState.PaymentPending, OrderState.Canceled, o => o.Cancel());
-                Transition(OrderState.ShipmentPending, OrderState.Canceled, o => o.Cancel());
-                Transition(OrderState.Shipped, OrderState.Canceled, o => o.Cancel());
+                Transition(OrderState.Open, OrderState.Canceled, Cancel);
+                Transition(OrderState.PaymentPending, OrderState.Canceled, Cancel);
+                Transition(OrderState.ShipmentPending, OrderState.Canceled, Cancel);
+                Transition(OrderState.Shipped, OrderState.Canceled, Cancel);
+
+                void Cancel(Order order, OrderBuilder builder) => order.Cancel(builder._cancellationReason);
             }
         }
     }

@@ -1,6 +1,7 @@
 # IDE Stuff
 
 .idea
+*.user
 
 # Build Output
 

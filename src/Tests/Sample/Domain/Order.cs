@@ -15,6 +15,9 @@ namespace BuildItEasy.Tests.Sample.Domain
         public IReadOnlyCollection<OrderLine> OrderLines => _orderLines.AsReadOnly();
         
         public string PaymentTransactionId { get; private set; }
+        
+        private readonly List<OrderHistoryEntry> _history = new List<OrderHistoryEntry>();
+        public IReadOnlyList<OrderHistoryEntry> History => _history.AsReadOnly();
 
         public Order(string orderNumber)
         {
@@ -59,6 +62,7 @@ namespace BuildItEasy.Tests.Sample.Domain
                 throw new InvalidOperationException($"{this} has no contact.");
 
             State = OrderState.PaymentPending;
+            WriteHistory("Checked out.");
         }
 
         public void ConfirmPayment(string paymentTransactionId)
@@ -68,6 +72,7 @@ namespace BuildItEasy.Tests.Sample.Domain
 
             PaymentTransactionId = paymentTransactionId;
             State = OrderState.ShipmentPending;
+            WriteHistory($"Confirmed payment with payment transaction {paymentTransactionId}.");
         }
 
         public void Ship()
@@ -76,14 +81,22 @@ namespace BuildItEasy.Tests.Sample.Domain
                 throw new InvalidOperationException($"{this} has not been paid yet.");
 
             State = OrderState.Shipped;
+            WriteHistory("Shipped.");
         }
 
-        public void Cancel()
+        public void Cancel(OrderCancellationReason cancellationReason)
         {
             if (State == OrderState.Canceled)
                 throw new InvalidOperationException($"{this} has already been canceled.");
             
             State = OrderState.Canceled;
+            WriteHistory($"Canceled with reason {cancellationReason}.");
+        }
+
+        private void WriteHistory(string message)
+        {
+            var historyEntry = new OrderHistoryEntry(this, DateTimeOffset.Now, message);
+            _history.Add(historyEntry);
         }
 
         public override string ToString()
