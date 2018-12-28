@@ -17,7 +17,7 @@ namespace BuildItEasy.Tests.Sample.Builders
             _quantity = Property(l => l.Quantity, 1).Required().Validate(q => q >= 1);
         }
 
-        public OrderLineBuilder WithProduct(Product product) => SetValue(_product, product);
+        public OrderLineBuilder WithProduct(ValueProvider<Product> product) => SetValue(_product, product);
         public OrderLineBuilder WithQuantity(int quantity) => SetValue(_quantity, quantity);
 
         protected override OrderLine BuildInternal()
