@@ -11,19 +11,17 @@ namespace BuildItEasy.Tests.Sample.Builders
             = new Identity<string>(i => $"{DateTime.Today:yyyy}/{i:000000}");
 
         private readonly Property<string> _orderNumber;
-        private readonly ChildBuilder<Contact, ContactBuilder> _contact = Child<Contact, ContactBuilder>(o => new ContactBuilder(o));
+        private readonly ChildBuilder<Contact, ContactBuilder> _contact;
+        private readonly ChildrenBuilder<OrderLine, OrderLineBuilder> _orderLines; //TODO
         private readonly Property<string> _paymentTransactionId;
         private readonly Property<OrderCancellationReason> _cancellationReason;
-
-//        private readonly Property<IReadOnlyList<Action<Order>>> _orderLines
-//            = new Property<IReadOnlyList<Action<Order>>>(new Action<Order>[] {o => new OrderLineBuilder(o).Build()});
-
 
         private readonly StateHelper<Order, OrderState, OrderBuilder> _state = State<OrderState, OrderStateDefinition>();
 
         public OrderBuilder()
         {
             _orderNumber = Property(o => o.OrderNumber, OrderNumberIdentity).Required();
+            _contact = Child<Contact, ContactBuilder>(o => new ContactBuilder(o)).Required();
             _paymentTransactionId = Property(o => o.PaymentTransactionId, "1234").OnlyIfNecessary();
             _cancellationReason = Property<OrderCancellationReason>("CancellationReason", OrderCancellationReason.Other).OnlyIfNecessary();
         }
@@ -32,11 +30,10 @@ namespace BuildItEasy.Tests.Sample.Builders
         
         public OrderBuilder WithOrderNumber(string orderNumber) => SetValue(_orderNumber, orderNumber);
 
-        public OrderBuilder WithContact(Action<ContactBuilder> customize) => CustomizeChild(_contact, customize);
+        public OrderBuilder WithContact(Customizer<ContactBuilder> customizer) => CustomizeChild(_contact, customizer);
         public OrderBuilder WithoutContact() => NoChild(_contact);
 
-//        public OrderBuilder WithOrderLine(Action<OrderLineBuilder> customize = null)
-//            => SetValue(_orderLines, new Action<Order>[] {o => new OrderLineBuilder(o).Customize(customize).Build()});
+        public OrderBuilder WithOrderLines(CollectionCustomizer<OrderLineBuilder> customizer) => CustomizeChildren(_orderLines, customizer);
 
         public OrderBuilder WithNumberOfOrderLines(int count) => this;
         public OrderBuilder WithOrderLines(params Action<OrderLineBuilder>[] customizes) => this;
@@ -146,11 +143,8 @@ namespace BuildItEasy.Tests.Sample.Builders
         {
             var order = new Order(_orderNumber);
 
-            BuildChild(order, _contact).IfSome(c => order.SetContact(c));
-
-            new OrderLineBuilder(order).Build(); //TODO
-//            foreach (var action in _orderLines.GetValue())
-//                action.Invoke(order);
+            BuildChild(order, _contact);
+            BuildChildren(order, _orderLines);
 
             Transition(order, _state);
 

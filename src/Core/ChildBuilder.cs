@@ -40,13 +40,13 @@ namespace BuildItEasy
             State = ValueState.ValueRequired;
         }
 
-        public void Customize(Action<TParent, TParentBuilder, TChildBuilder> customize)
+        public void Customize(Action<TParent, TParentBuilder, TChildBuilder> customizer)
         {
-            if (customize == null)
-                throw new ArgumentNullException(nameof(customize));
+            if (customizer == null)
+                throw new ArgumentNullException(nameof(customizer));
             
             EnsureChild();
-            _customizations.Add(customize);
+            _customizations.Add(customizer);
         }
 
         public Option<TChild> BuildChild(TParent parentEntity, TParentBuilder parentBuilder)

@@ -26,7 +26,10 @@ namespace BuildItEasy.Tests.Sample.Builders
 
         protected override Contact BuildInternal()
         {
-            return new Contact(_order, _firstName, _lastName, _mailAddress);
+            var contact = new Contact(_order, _firstName, _lastName, _mailAddress);
+            _order.SetContact(contact);
+
+            return contact;
         }
     }
 }

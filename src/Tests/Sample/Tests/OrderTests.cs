@@ -15,10 +15,15 @@ namespace BuildItEasy.Tests.Sample.Tests
         {
             var order = new OrderBuilder()
                 .WithContact(c => c.WithFirstName("Oliver"))
+                .WithOrderLines(ls => ls.WithExactly(
+                    l => l.WithQuantity(2),
+                    l => l.WithQuantity(1))
+                )
                 .Paid()
                 .Build();
 
-            var serializerSettings = new JsonSerializerSettings {PreserveReferencesHandling = PreserveReferencesHandling.Objects};
+            var serializerSettings = new JsonSerializerSettings
+                {PreserveReferencesHandling = PreserveReferencesHandling.Objects};
             var json = JsonConvert.SerializeObject(order, Formatting.Indented, serializerSettings);
             Console.WriteLine(json);
         }

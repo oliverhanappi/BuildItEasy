@@ -8,7 +8,7 @@ using LanguageExt;
 
 namespace BuildItEasy
 {
-    public abstract class Builder<TResult>
+    public abstract class Builder<TResult> : IBuilder
     {
         private readonly ICollection<IValidator<TResult>> _validators;
 
@@ -65,9 +65,14 @@ namespace BuildItEasy
             }
         }
 
-        public TSelf Customize(Action<TSelf> customize = null)
+        protected class ChildrenBuilder<TChild, TChildBuilder> : ChildrenBuilder<TResult, TSelf, TChild, TChildBuilder>
+            where TChildBuilder : Builder<TChild>
         {
-            customize?.Invoke((TSelf) this);
+        }
+
+        public TSelf Customize(Customizer<TSelf> customizer = null)
+        {
+            customizer?.Invoke((TSelf) this);
             return (TSelf) this;
         }
 
@@ -85,49 +90,18 @@ namespace BuildItEasy
             return (TSelf) this;
         }
 
-        protected static ChildBuilder<TChild, TChildBuilder> RequiredChild<TChild, TChildBuilder>(
-            Func<TResult, TChildBuilder> builderFactory)
-            where TChildBuilder : Builder<TChild>
-        {
-            return RequiredChild<TChild, TChildBuilder>((r, _) => builderFactory(r));
-        }
-
-        protected static ChildBuilder<TChild, TChildBuilder> RequiredChild<TChild, TChildBuilder>(
-            Func<TResult, TSelf, TChildBuilder> builderFactory)
-            where TChildBuilder : Builder<TChild>
-        {
-            var childBuilder = new ChildBuilder<TChild, TChildBuilder>(builderFactory, DefaultValuePreference.Value);
-            childBuilder.EnsureChild();
-
-            return childBuilder;
-        }
-
-        protected static ChildBuilder<TChild, TChildBuilder> Child<TChild, TChildBuilder>(
+        protected ChildBuilderConfigurator<TResult, TSelf, TChild, TChildBuilder, ChildBuilder<TChild, TChildBuilder>> Child<TChild, TChildBuilder>(
             Func<TResult, TChildBuilder> builderFactory)
             where TChildBuilder : Builder<TChild>
         {
             return Child<TChild, TChildBuilder>((r, _) => builderFactory(r));
         }
 
-        protected static ChildBuilder<TChild, TChildBuilder> Child<TChild, TChildBuilder>(
+        protected ChildBuilderConfigurator<TResult, TSelf, TChild, TChildBuilder, ChildBuilder<TChild, TChildBuilder>> Child<TChild, TChildBuilder>(
             Func<TResult, TSelf, TChildBuilder> builderFactory)
             where TChildBuilder : Builder<TChild>
         {
-            return new ChildBuilder<TChild, TChildBuilder>(builderFactory, DefaultValuePreference.Value);
-        }
-
-        protected static ChildBuilder<TChild, TChildBuilder> OptionalChild<TChild, TChildBuilder>(
-            Func<TResult, TChildBuilder> builderFactory)
-            where TChildBuilder : Builder<TChild>
-        {
-            return OptionalChild<TChild, TChildBuilder>((r, _) => builderFactory(r));
-        }
-
-        protected static ChildBuilder<TChild, TChildBuilder> OptionalChild<TChild, TChildBuilder>(
-            Func<TResult, TSelf, TChildBuilder> builderFactory)
-            where TChildBuilder : Builder<TChild>
-        {
-            return new ChildBuilder<TChild, TChildBuilder>(builderFactory, DefaultValuePreference.NoValue);
+            return new ChildBuilderConfigurator<TResult, TSelf, TChild, TChildBuilder, ChildBuilder<TChild, TChildBuilder>>("TODO", dvp => new ChildBuilder<TChild, TChildBuilder>(builderFactory, dvp));
         }
 
         protected TSelf NoChild<TChild, TChildBuilder>(ChildBuilder<TResult, TSelf, TChild, TChildBuilder> childBuilder)
@@ -138,10 +112,10 @@ namespace BuildItEasy
         }
 
         protected TSelf CustomizeChild<TChild, TChildBuilder>(
-            ChildBuilder<TResult, TSelf, TChild, TChildBuilder> childBuilder, Action<TChildBuilder> customize)
+            ChildBuilder<TResult, TSelf, TChild, TChildBuilder> childBuilder, Customizer<TChildBuilder> customizer)
             where TChildBuilder : Builder<TChild>
         {
-            childBuilder.Customize((_, __, b) => customize.Invoke(b));
+            childBuilder.Customize((_, __, b) => customizer.Invoke(b));
             return (TSelf) this;
         }
 
@@ -150,6 +124,21 @@ namespace BuildItEasy
             where TChildBuilder : Builder<TChild>
         {
             return childBuilder.BuildChild(result, (TSelf) this);
+        }
+
+        protected TSelf CustomizeChildren<TChild, TChildBuilder>(
+            ChildrenBuilder<TResult, TSelf, TChild, TChildBuilder> childrenBuilder, CollectionCustomizer<TChildBuilder> customizer)
+            where TChildBuilder : Builder<TChild>
+        {
+            //TODO childrenBuilder.Customize((_, __, b) => customizer.Invoke(b));
+            return (TSelf) this;
+        }
+
+        protected IReadOnlyList<TChild> BuildChildren<TChild, TChildBuilder>(TResult result,
+            ChildrenBuilder<TResult, TSelf, TChild, TChildBuilder> childrenBuilder)
+            where TChildBuilder : Builder<TChild>
+        {
+            return childrenBuilder.BuildChildren(result, (TSelf) this);
         }
 
         protected static StateHelper<TResult, TState, TSelf> State<TState, TStateDefinition>()
