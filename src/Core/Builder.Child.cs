@@ -1,6 +1,7 @@
 using System;
 using System.Linq.Expressions;
-using BuildItEasy.Reflection;
+using BuildItEasy.Nesting;
+using BuildItEasy.Utils.Reflection;
 using LanguageExt;
 
 namespace BuildItEasy

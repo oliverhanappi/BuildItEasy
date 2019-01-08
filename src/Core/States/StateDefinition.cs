@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using BuildItEasy.Graphs;
+using BuildItEasy.Utils.Graphs;
 
 namespace BuildItEasy.States
 {

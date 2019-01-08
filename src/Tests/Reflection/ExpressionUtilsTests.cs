@@ -1,6 +1,8 @@
 using System;
-using BuildItEasy.Reflection;
+using BuildItEasy.Utils.Reflection;
 using NUnit.Framework;
+
+#pragma warning disable 649
 
 namespace BuildItEasy.Tests.Reflection
 {

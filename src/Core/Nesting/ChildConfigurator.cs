@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using LanguageExt;
 
-namespace BuildItEasy
+namespace BuildItEasy.Nesting
 {
     public class ChildConfigurator<TBuilderResult, TValue, TValueBuilder, TConfigured> :
         ValueConfiguratorBase<TBuilderResult, TValue, TConfigured, TBuilderResult, ChildConfigurator<TBuilderResult, TValue, TValueBuilder, TConfigured>>

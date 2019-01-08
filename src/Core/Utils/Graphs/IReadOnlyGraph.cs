@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace BuildItEasy.Graphs
+namespace BuildItEasy.Utils.Graphs
 {
     public interface IReadOnlyGraph<TNode, TEdge>
         where TEdge : Edge<TNode>

@@ -1,6 +1,6 @@
 using System;
 
-namespace BuildItEasy
+namespace BuildItEasy.Nesting
 {
     public class Children<T, TBuilder, TParent> : ValuesBase<T, TBuilder, Customizer<TBuilder>, TParent>
         where TBuilder : IBuilder<T>

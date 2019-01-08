@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace BuildItEasy.Graphs
+namespace BuildItEasy.Utils.Graphs
 {
     public class Path<TNode, TEdge>
         where TEdge : Edge<TNode>

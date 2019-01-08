@@ -1,4 +1,4 @@
-namespace BuildItEasy.Graphs
+namespace BuildItEasy.Utils.Graphs
 {
     public class Edge<TNode>
     {

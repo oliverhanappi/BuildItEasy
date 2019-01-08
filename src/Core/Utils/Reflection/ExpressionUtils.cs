@@ -1,7 +1,7 @@
 using System;
 using System.Linq.Expressions;
 
-namespace BuildItEasy.Reflection
+namespace BuildItEasy.Utils.Reflection
 {
     public static class ExpressionUtils
     {

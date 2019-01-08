@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using BuildItEasy.Graphs;
+using BuildItEasy.Utils.Graphs;
 
 namespace BuildItEasy.States
 {
