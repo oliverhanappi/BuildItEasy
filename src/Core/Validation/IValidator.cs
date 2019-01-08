@@ -1,4 +1,4 @@
-namespace BuildItEasy
+namespace BuildItEasy.Validation
 {
     public interface IValidator<in T>
     {

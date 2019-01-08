@@ -101,7 +101,7 @@ namespace BuildItEasy.Tests.Sample.Domain
 
         public override string ToString()
         {
-            return $"Order #{OrderNumber}";
+            return $"Order {OrderNumber}";
         }
     }
 }

@@ -1,5 +1,5 @@
 using System;
-using System.Collections.Generic;
+using BuildItEasy.Identities;
 using BuildItEasy.States;
 using BuildItEasy.Tests.Sample.Domain;
 
@@ -10,40 +10,37 @@ namespace BuildItEasy.Tests.Sample.Builders
         private static readonly Identity<string> OrderNumberIdentity
             = new Identity<string>(i => $"{DateTime.Today:yyyy}/{i:000000}");
 
-        private readonly Property<string> _orderNumber;
-        private readonly ChildBuilder<Contact, ContactBuilder> _contact;
-        private readonly ChildrenBuilder<OrderLine, OrderLineBuilder> _orderLines; //TODO
-        private readonly Property<string> _paymentTransactionId;
-        private readonly Property<OrderCancellationReason> _cancellationReason;
+        private readonly Value<string> _orderNumber;
+        private readonly Child<Contact, ContactBuilder> _contact;
+        private readonly Children<OrderLine, OrderLineBuilder> _orderLines;
+        private readonly Value<string> _paymentTransactionId;
+        private readonly Value<OrderCancellationReason> _cancellationReason;
 
         private readonly StateHelper<Order, OrderState, OrderBuilder> _state = State<OrderState, OrderStateDefinition>();
 
         public OrderBuilder()
         {
-            _orderNumber = Property(o => o.OrderNumber, OrderNumberIdentity).Required();
-            _contact = Child<Contact, ContactBuilder>(o => new ContactBuilder(o)).Required();
-            _paymentTransactionId = Property(o => o.PaymentTransactionId, "1234").OnlyIfNecessary();
-            _cancellationReason = Property<OrderCancellationReason>("CancellationReason", OrderCancellationReason.Other).OnlyIfNecessary();
+            _orderNumber = Value(o => o.OrderNumber, OrderNumberIdentity).Required();
+            _contact = AddChild(o => o.Contact, o => new ContactBuilder(o)).Required();
+            _paymentTransactionId = Value(o => o.PaymentTransactionId, "1234").OnlyIfNecessary();
+            _cancellationReason = Value<OrderCancellationReason>("CancellationReason", OrderCancellationReason.Other).OnlyIfNecessary();
+            _orderLines = AddChildren(o => o.OrderLines, (o, _) => new OrderLineBuilder(o));
         }
         
         // Data
         
-        public OrderBuilder WithOrderNumber(string orderNumber) => SetValue(_orderNumber, orderNumber);
+        public OrderBuilder WithOrderNumber(ValueProvider<string> orderNumber) => SetValue(_orderNumber, orderNumber);
 
         public OrderBuilder WithContact(Customizer<ContactBuilder> customizer) => CustomizeChild(_contact, customizer);
         public OrderBuilder WithoutContact() => NoChild(_contact);
 
-        public OrderBuilder WithOrderLines(CollectionCustomizer<OrderLineBuilder> customizer) => CustomizeChildren(_orderLines, customizer);
-
-        public OrderBuilder WithNumberOfOrderLines(int count) => this;
-        public OrderBuilder WithOrderLines(params Action<OrderLineBuilder>[] customizes) => this;
-        public OrderBuilder WithoutOrderLines() => WithNumberOfOrderLines(0);
+        public OrderBuilder WithOrderLines(ValuesCustomizer<OrderLine, OrderLineBuilder> customizer) => CustomizeChildren(_orderLines, customizer);
 
         // Check Out
 
         private OrderBuilder PrepareForCheckOut()
         {
-            _contact.EnsureChild();
+            _contact.EnsureValue();
             return this;
         }
 

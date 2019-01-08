@@ -1,10 +1,13 @@
 using System;
 using System.Threading;
 
-namespace BuildItEasy
+namespace BuildItEasy.Identities
 {
-    public class Identity<T>
+    public class Identity<T> : IIdentity<T>
     {
+        public static implicit operator ValueProvider<T>(Identity<T> identity)
+            => new IdentityValueProvider<T>(identity);
+
         private readonly Func<int, T> _factory;
         private int _nextIdentity;
 
@@ -16,8 +19,8 @@ namespace BuildItEasy
 
         public T GetNextValue()
         {
-            var identity = Interlocked.Increment(ref _nextIdentity);
-            return _factory.Invoke(identity - 1);
+            var nextIdentity = Interlocked.Increment(ref _nextIdentity);
+            return _factory.Invoke(nextIdentity - 1);
         }
     }
 

@@ -7,17 +7,17 @@ namespace BuildItEasy.Tests.Sample.Builders
     {
         private readonly Order _order;
         
-        private readonly Property<string> _firstName;
-        private readonly Property<string> _lastName;
-        private readonly Property<string> _mailAddress;
+        private readonly Value<string> _firstName;
+        private readonly Value<string> _lastName;
+        private readonly Value<string> _mailAddress;
 
         public ContactBuilder(Order order)
         {
             _order = order ?? throw new ArgumentNullException(nameof(order));
 
-            _firstName = Property(c => c.FirstName, "Max").Required();
-            _lastName = Property(c => c.LastName, "Mustermann").Required();
-            _mailAddress = Property(c => c.MailAddress, "max.mustermann@test.local").Required();
+            _firstName = Value(c => c.FirstName, "Max").Required();
+            _lastName = Value(c => c.LastName, "Mustermann").Required();
+            _mailAddress = Value(c => c.MailAddress, "max.mustermann@test.local").Required();
         }
         
         public ContactBuilder WithFirstName(string firstName) => SetValue(_firstName, firstName);

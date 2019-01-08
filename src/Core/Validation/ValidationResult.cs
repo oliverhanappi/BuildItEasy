@@ -2,12 +2,18 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using LanguageExt;
 
-namespace BuildItEasy
+namespace BuildItEasy.Validation
 {
     public class ValidationResult
     {
         public static readonly ValidationResult Valid = new ValidationResult(new string[0]);
+
+        public static ValidationResult Merge(IEnumerable<ValidationResult> validationResults)
+        {
+            return validationResults.Aggregate(Valid, (x, y) => new ValidationResult(x.Errors.Concat(y.Errors)));
+        }
         
         public bool IsValid => Errors.Count == 0;
         public IReadOnlyCollection<string> Errors { get; }
@@ -20,17 +26,11 @@ namespace BuildItEasy
             Errors = errors.ToList();
         }
 
-        public void AssertValid()
+        public void AssertValid(Option<string> context = default)
         {
             if (!IsValid)
             {
-                var message = new StringBuilder();
-                message.AppendLine("Validation failed:");
-
-                foreach (var error in Errors)
-                    message.AppendLine($"  - {error}");
-
-                throw new Exception(message.ToString().TrimEnd());
+                throw new ValidationException(this, context);
             }
         }
     }

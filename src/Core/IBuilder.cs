@@ -6,4 +6,9 @@ namespace BuildItEasy
     public interface IBuilder
     {
     }
+
+    public interface IBuilder<out TResult> : IBuilder
+    {
+        TResult Build();
+    }
 }
